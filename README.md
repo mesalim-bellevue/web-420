@@ -1,2 +1,4 @@
-# web-420
-Bellevue University Web Development - WEB 420
+# WEB 420 RESTful APIs
+## Contributors
+* Richard Krasso
+* Meher Salim
