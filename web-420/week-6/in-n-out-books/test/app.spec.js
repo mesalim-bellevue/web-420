@@ -1,0 +1,153 @@
+// Name:        Meher Salim
+// Date:        06/19/2024
+// Filename:    app.spec.js
+// Description: Unit tests for in-n-out-books API routes using Jest
+
+// Import necessary modules
+const request = require('supertest'); // Supertest for HTTP assertions
+const app = require('../src/app'); // Import the Express app
+const books = require('../database/books'); // Import the books collection
+
+// Define the test suite for Chapter 3 API tests
+describe('Chapter 3: API Tests', () => {
+  // Test case for retrieving an array of books
+  it('Should return an array of books', async () => {
+    // Make a GET request to the /api/books endpoint
+    const res = await request(app).get('/api/books');
+    
+    // heck that response status is code 200 (good request)
+    expect(res.statusCode).toEqual(200);
+    // Check that response body is an array
+    expect(res.body).toBeInstanceOf(Array);
+    // Check array is not empty
+    expect(res.body.length).toBeGreaterThan(0);
+  });
+
+  // Test case for retrieving a single book by ID
+  it('Should return a single book', async () => {
+    const bookId = 1; // Define a valid book ID
+    // Make a GET request to the /api/books/:id endpoint
+    const res = await request(app).get(`/api/books/${bookId}`);
+    
+    // heck that response status is code 200 (good request)
+    expect(res.statusCode).toEqual(200);
+    // Check  response body contains expected book ID
+    expect(res.body).toHaveProperty('id', bookId);
+  });
+
+  // Test case for handling invalid book ID
+  it('Should return a 400 error if the id is not a number', async () => {
+    // Make a GET request to the /api/books/not-a-number endpoint
+    const res = await request(app).get('/api/books/not-a-number');
+    
+    // Check that response status is code 400 (bad request)
+    expect(res.statusCode).toEqual(400);
+    // Check response body contains appropriate error message
+    expect(res.body).toHaveProperty('error', 'Invalid book ID');
+  });
+});
+
+// Define the test suite for Chapter 4 API tests
+describe('Chapter 4: API Tests', () => {
+  beforeEach(() => {
+    // Reset the books collection before each test
+    books.data = [
+      { id: 1, title: "Throne of Glass", auhtor: "Sarah J. Maas" },
+      { id: 2, title: "Vampire Academy", author: "Richelle Mead" },
+      { id: 3, title: "Poison Study", author: "Maria V. Snyder"},
+      { id: 4, title: "Riley Thorn and the Dead Guy Next Door", author: "Lucy Score"},
+      { id: 5, title: "Private Eye: A Tiger's Eye Mysetry", author: "Alyssa Day"},
+      { id: 6, title: "Touch of Power", author: "Maria V. Snyder"},
+      { id: 7, title: "A Court of Thorns and Roses", author: "Sarah J. Maas"},
+      { id: 8, title: "Storm Born", author: "Richelle Mead"},
+      { id: 9, title: "A Hoe Lot of Trouble", author: "Heather Webber"},
+      { id: 10, title: "It Takes a Witch", author: "Heather Blake"},    ];
+  });
+
+  // Test case for adding a new book
+  it('Should return a 201-status code when adding a new book', async () => {
+    const newBook = { id: 6, title: "New Book", author: "New Author" };
+    // Make a POST request to the /api/books endpoint
+    const res = await request(app).post('/api/books').send(newBook);
+
+    // Check that response status code is 201 (Created)
+    expect(res.statusCode).toEqual(201);
+    // Check the response body contains the new book title
+    expect(res.body).toHaveProperty('title', newBook.title);
+  });
+
+  // Test case for handling missing title when adding a new book
+  it('Should return a 400-status code when adding a new book with missing title', async () => {
+    const newBook = { id: 7, author: "New Author" };
+    // Make a POST request to the /api/books endpoint
+    const res = await request(app).post('/api/books').send(newBook);
+    
+    // Check that response status code is 400 (Bad Request)
+    expect(res.statusCode).toEqual(400);
+    // Check response body contain the appropriate error message
+    expect(res.body).toHaveProperty('error', 'Book title is required');
+  });
+
+  // Test case for deleting a book
+  it('Should return a 204-status code when deleting a book', async () => {
+    const bookId = 1;
+    // Make a DELETE request to the /api/books/:id endpoint
+    const res = await request(app).delete(`/api/books/${bookId}`);
+    
+    // Check that response status code is 204 (No Content)
+    expect(res.statusCode).toEqual(204);
+  });
+});
+
+// Define the test suite for Chapter 5 API tests
+describe('Chapter 5: API Test', () => {
+  beforeEach(() => {
+    //Reset the books collection before each test
+    books.data = [
+      { id: 1, title: "Throne of Glass", auhtor: "Sarah J. Maas" },
+      { id: 2, title: "Vampire Academy", author: "Richelle Mead" },
+      { id: 3, title: "Poison Study", author: "Maria V. Snyder"},
+      { id: 4, title: "Riley Thorn and the Dead Guy Next Door", author: "Lucy Score"},
+      { id: 5, title: "Private Eye: A Tiger's Eye Mysetry", author: "Alyssa Day"},
+      { id: 6, title: "Touch of Power", author: "Maria V. Snyder"},
+      { id: 7, title: "A Court of Thorns and Roses", author: "Sarah J. Maas"},
+      { id: 8, title: "Storm Born", author: "Richelle Mead"},
+      { id: 9, title: "A Hoe Lot of Trouble", author: "Heather Webber"},
+      { id: 10, title: "It Takes a Witch", author: "Heather Blake"},
+    ];
+  });
+
+  // Test case for updating a book and returning a 204-status code
+  it('Should update a book and return a 204-status code', async () => {
+    const updatedBook = { title: "Updated Book", author: "Updated Author" };
+    // Make a PUT request to the /api/books/:id endpoint
+    const res = await request(app).put('/api/books/2').send(updatedBook);
+
+    // Check that response status code is 204 (No Content)
+    expect(res.statusCode).toEqual(204);
+  });
+
+  // Test case for handling non-numeric id when updating a book
+  it('Should return a 400-status code when using a non-numeric id', async () => {
+    const updatedBook = { title: "Updated Book", author: "Updated Author" };
+    // Make a PUT request to the /api/books/foo endpoint
+    const res = await request(app).put('/api/books/foo').send(updatedBook);
+
+    // Check that response status code is 400 (Bad Request)
+    expect(res.statusCode).toEqual(400);
+    // Check response body contains appropriate error message
+    expect(res.body).toHaveProperty('error', 'ID must be a number');
+  });
+
+  // Test case for handling missing title when updating a book
+  it('Should return a 400-status code when updating a book with a missing title', async () => {
+    const updatedBook = { author: "Updated Author" };
+    // Make a PUT request to the /api/books/:id endpoint
+    const res = await request(app).put('/api/books/2').send(updatedBook);
+
+    // Check that response status code is 400 (Bad Request)
+    expect(res.statusCode).toEqual(400);
+    // Check resposne body contains the appropriate error message
+    expect(res.body).toHaveProperty('error', 'Bad Request: Missing title');
+  });
+});
